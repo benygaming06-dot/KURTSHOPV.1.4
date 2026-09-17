@@ -11,17 +11,6 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Check project structure
-        run: |
-          echo "=== PROJECT FILES ==="
-          find . -maxdepth 3 -type f | sort
-
-          echo "=== SETTINGS.GRADLE ==="
-          cat settings.gradle
-
-          echo "=== APP BUILD.GRADLE ==="
-          cat app/build.gradle
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -34,49 +23,24 @@ jobs:
           cmdline-tools-version: 12266719
           packages: ''
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         run: |
           sdkmanager "platform-tools"
           sdkmanager "platforms;android-35"
           sdkmanager "build-tools;35.0.0"
 
-      - name: Set up Gradle
+      - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Clean invalid resource files
+      - name: Clean invalid Android resource files
         run: |
-          find app/src/main/res/values \
-            -type f ! -name '*.xml' \
-            -print -delete || true
-
-          find app/src/main/res/drawable \
-            -type f \
-            ! -name '*.xml' \
-            ! -name '*.png' \
-            ! -name '*.jpg' \
-            ! -name '*.jpeg' \
-            ! -name '*.webp' \
-            -print -delete || true
-
-      - name: Show Gradle projects
-        run: |
-          gradle projects
-
-      - name: Show Android tasks
-        run: |
-          gradle :app:tasks --all
+          find app/src/main/res/values -type f ! -name '*.xml' -delete
+          find app/src/main/res/drawable -type f ! -name '*.xml' ! -name '*.png' ! -name '*.jpg' ! -name '*.jpeg' ! -name '*.webp' -delete
 
       - name: Build debug APK
-        run: |
-          gradle clean
-          gradle :app:assembleDebug --stacktrace
-
-      - name: Check APK
-        run: |
-          ls -lh app/build/outputs/apk/debug/
-          test -f app/build/outputs/apk/debug/app-debug.apk
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
